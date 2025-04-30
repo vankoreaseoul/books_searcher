@@ -15,10 +15,13 @@ class SearchViewController: UIViewController {
     private var searchBtn: UIButton!
     private var searchTableView: UITableView!
     private var keyboardHeight: CGFloat = .zero
+    
+    private let paginationView = PaginationView()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         configureUI()
+        bindViewModel()
         subscribeKeyboardPresence()
     }
     
@@ -47,18 +50,19 @@ class SearchViewController: UIViewController {
         searchBtn.translatesAutoresizingMaskIntoConstraints = false
         
         searchTableView = UITableView(frame: .zero, style: .plain)
-        searchTableView.register(SearchTableViewCell.self, forCellReuseIdentifier: "SearchTableViewCell")
+        searchTableView.register(SearchTableViewCell.self, forCellReuseIdentifier: SearchTableViewCell.identifier)
         searchTableView.delegate = self
         searchTableView.dataSource = self
-        
-        // ?????
-        searchTableView.rowHeight = 100
+        searchTableView.rowHeight = TABLE_CELL_HEIGHT
         
         searchTableView.translatesAutoresizingMaskIntoConstraints = false
+        
+        paginationView.translatesAutoresizingMaskIntoConstraints = false
         
         view.addSubview(searchTextField)
         view.addSubview(searchBtn)
         view.addSubview(searchTableView)
+        view.addSubview(paginationView)
         
         view.backgroundColor = .systemBackground
         
@@ -75,18 +79,43 @@ class SearchViewController: UIViewController {
             searchTableView.topAnchor.constraint(equalTo: searchBtn.bottomAnchor, constant: 28),
             searchTableView.leftAnchor.constraint(equalTo: view.leftAnchor),
             searchTableView.rightAnchor.constraint(equalTo: view.rightAnchor),
-            searchTableView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -16)
+            searchTableView.bottomAnchor.constraint(equalTo: paginationView.topAnchor, constant: -16),
+            
+            paginationView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -4),
+            paginationView.leftAnchor.constraint(equalTo: view.leftAnchor),
+            paginationView.rightAnchor.constraint(equalTo: view.rightAnchor),
+            paginationView.heightAnchor.constraint(equalToConstant: 44)
         ])
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
         view.addGestureRecognizer(tapGesture)
     }
     
+    private func bindViewModel() {
+        viewModel.presentAlert = { [weak self] msg in
+            let alert = UIAlertController(title: "Notice", message: msg, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: { _ in
+                self?.viewModel.resetComponents()
+            }))
+            self?.present(alert, animated: false)
+        }
+        
+        viewModel.onUpdate = { [weak self] in
+            self?.setUpPaginationView()
+            self?.searchTableView.reloadData()
+        }
+    }
+    
+    private func setUpPaginationView() {
+        paginationView.configureUI(current:  viewModel.currentPage, total: viewModel.totalPages)
+        paginationView.didTapPageBtn = { [weak self] page in
+            self?.viewModel.didTapPageBtn(page: page)
+        }
+    }
+    
     @objc private func searchBtnTapped() {
         dismissKeyboard()
-        
-        guard let query = searchTextField.text, !query.isEmpty else { return }
-        viewModel.searchBooks(query: query)
+        viewModel.didTapSearchBtn(query: searchTextField.text ?? "", page: 1)
     }
     
     @objc private func dismissKeyboard() {
@@ -116,6 +145,7 @@ class SearchViewController: UIViewController {
         UIView.animate(withDuration: 0.3) {
             self.view.frame.size.height += self.keyboardHeight
             self.view.layoutIfNeeded()
+            self.keyboardHeight = .zero
         }
     }
     
@@ -124,11 +154,13 @@ class SearchViewController: UIViewController {
 
 extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 10
+        return viewModel.books.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        return UITableViewCell()
+        guard let cell = searchTableView.dequeueReusableCell(withIdentifier: SearchTableViewCell.identifier, for: indexPath) as? SearchTableViewCell else { return UITableViewCell() }
+        cell.configure(book: viewModel.books[indexPath.row])
+        return cell
     }
     
     
