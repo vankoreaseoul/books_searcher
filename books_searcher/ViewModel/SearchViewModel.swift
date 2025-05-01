@@ -10,7 +10,9 @@ import Combine
 
 class SearchViewModel {
     
-    private let searchBooksUsecas: SearchBooksUsecase = SearchBooksUsecaseImpl()
+    private var searchBooksUsecase: SearchBooksUsecase
+    var loadBookImageUsecase: LoadBookImageUsecase
+    
     private var cancellables = Set<AnyCancellable>()
     private var query: String = ""
     
@@ -20,6 +22,15 @@ class SearchViewModel {
     
     var presentAlert: ((String) -> Void)?
     var onUpdate: (() -> Void)?
+    
+    init(searchBooksUsecase: SearchBooksUsecase, loadBookImageUsecase: LoadBookImageUsecase) {
+        self.searchBooksUsecase = searchBooksUsecase
+        self.loadBookImageUsecase = loadBookImageUsecase
+    }
+    
+    deinit {
+        print("SearchViewModel deinit..")
+    }
     
     func didTapSearchBtn(query: String, page: Int) {
         guard !hasSpace(query) else {
@@ -49,13 +60,13 @@ class SearchViewModel {
     }
     
     func didTapPageBtn(page: Int) {
-        searchBooksUsecas.execute(query: query, page: page)
+        searchBooksUsecase.execute(query: query, page: page)
             .sink { completion in
                 switch completion {
                 case .finished:
                     break
                 case .failure(let error):
-                    print("error = \(error), msg: \(error.errorDescription)")
+                    print("[Load Books Fail] Error = \(error), Msg: \(error.errorDescription)")
                     break
                 }
             } receiveValue: { [weak self] pagination in

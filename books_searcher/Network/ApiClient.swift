@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import UIKit
 
 protocol ApiRequest {
     var baseURL: URL { get }
@@ -16,9 +17,6 @@ protocol ApiRequest {
 
 class ApiClient {
     
-    static let shared = ApiClient()
-    private init() {}
-    
     func request<T: Codable>(_ apiRequest: ApiRequest) -> AnyPublisher<T, ApiError> {
         do {
             let request = try makeRequest(apiRequest)
@@ -27,7 +25,6 @@ class ApiClient {
                 .tryMap { [weak self] result in
                     guard let hasSelf = self else { throw ApiError.selfDeallocated }
                     try hasSelf.validateResponse(result.response)
-//                    print("data = \(String(data: result.data, encoding: .utf8))")
                     return result.data
                 }
                 .decode(type: T.self, decoder: JSONDecoder())
@@ -41,8 +38,35 @@ class ApiClient {
         }
     }
     
+    func requestImage(_ apiRequest: ApiRequest) -> AnyPublisher<UIImage, ApiError> {
+        do {
+            let request = try makeRequest(apiRequest)
+            
+            return URLSession.shared.dataTaskPublisher(for: request)
+                .tryMap { [weak self] result in
+                    guard let hasSelf = self else { throw ApiError.selfDeallocated }
+                    try hasSelf.validateResponse(result.response)
+                    guard let image = UIImage(data: result.data) else { throw ApiError.decodingError }
+                    return image
+                }
+                .mapError { self.handleError($0) }
+                .receive(on: DispatchQueue.main)
+                .eraseToAnyPublisher()
+            
+        } catch {
+            return Fail(error: handleError(error))
+                .eraseToAnyPublisher()
+        }
+    }
+    
     private func makeRequest(_ apiRequest: ApiRequest) throws -> URLRequest {
-        let components = URLComponents(url: apiRequest.baseURL.appendingPathComponent(apiRequest.path), resolvingAgainstBaseURL: false)
+        var newURL = apiRequest.baseURL
+        
+        if !apiRequest.path.isEmpty {
+            newURL = newURL.appendingPathComponent(apiRequest.path)
+        }
+        
+        let components = URLComponents(url: newURL, resolvingAgainstBaseURL: false)
         guard let url = components?.url else { throw ApiError.invalidURL }
         
         var request = URLRequest(url: url)

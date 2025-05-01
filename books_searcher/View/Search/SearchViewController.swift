@@ -9,7 +9,7 @@ import UIKit
 
 class SearchViewController: UIViewController {
     
-    private let viewModel = SearchViewModel()
+    private let viewModel: SearchViewModel
     
     private var searchTextField: UITextField!
     private var searchBtn: UIButton!
@@ -17,16 +17,23 @@ class SearchViewController: UIViewController {
     private var keyboardHeight: CGFloat = .zero
     
     private let paginationView = PaginationView()
-
+    
+    init(viewModel: SearchViewModel) {
+        self.viewModel = viewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    
+    deinit {
+        unsubscribeKeyboardPresence()
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         configureUI()
         bindViewModel()
         subscribeKeyboardPresence()
-    }
-    
-    deinit {
-        unsubscribeKeyboardPresence()
     }
 
     private func configureUI() {
@@ -88,7 +95,7 @@ class SearchViewController: UIViewController {
         ])
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
-        view.addGestureRecognizer(tapGesture)
+//        view.addGestureRecognizer(tapGesture)
     }
     
     private func bindViewModel() {
@@ -159,10 +166,17 @@ extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = searchTableView.dequeueReusableCell(withIdentifier: SearchTableViewCell.identifier, for: indexPath) as? SearchTableViewCell else { return UITableViewCell() }
-        cell.configure(book: viewModel.books[indexPath.row])
+        cell.configure(book: viewModel.books[indexPath.row], usecase: viewModel.loadBookImageUsecase)
         return cell
     }
     
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+//        let selectedBook = books[indexPath.row]
+        
+        let detailVC = DetailViewController()
+//        detailVC.book = selectedBook
+        navigationController?.pushViewController(detailVC, animated: true)
+    }
     
     
 }
