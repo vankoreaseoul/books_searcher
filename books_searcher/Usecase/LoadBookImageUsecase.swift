@@ -20,11 +20,9 @@ final class LoadBookImageUsecaseImpl: LoadBookImageUsecase {
     
     var imageCacheMgr: ImageCacheManager
     
-    init(imageCacheMgr: ImageCacheManager) {
-        self.imageCacheMgr = imageCacheMgr
-    }
+    init(imageCacheMgr: ImageCacheManager) { self.imageCacheMgr = imageCacheMgr }
     
     func execute(url: String) -> AnyPublisher<UIImage, ApiError> {
-        return imageCacheMgr.loadImage(url: url)
+        return imageCacheMgr.load(url: url)
     }
 }

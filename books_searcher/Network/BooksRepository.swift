@@ -15,15 +15,14 @@ protocol BooksRepository {
     
     func searchBooks(query: String, page: Int) -> AnyPublisher<BookSearchResponseDTO, ApiError>
     func loadImage(url: String) -> AnyPublisher<UIImage, ApiError>
+    func getBookDetail(isbn13: String) -> AnyPublisher<BookDetailResponseDTO, ApiError>
 }
 
 final class BooksRepositoryImpl: BooksRepository {
     
     var apiClient: ApiClient
     
-    init(apiClient: ApiClient) {
-        self.apiClient = apiClient
-    }
+    init(apiClient: ApiClient) { self.apiClient = apiClient }
     
     func searchBooks(query: String, page: Int) -> AnyPublisher<BookSearchResponseDTO, ApiError> {
         let request = SearchBooksRequest(query: query, page: page)
@@ -34,10 +33,15 @@ final class BooksRepositoryImpl: BooksRepository {
         let request = LoadImageRequest(imageURL: url)
         return apiClient.requestImage(request)
     }
+    
+    func getBookDetail(isbn13: String) -> AnyPublisher<BookDetailResponseDTO, ApiError> {
+        let request = BookDetailRequest(isbn13: isbn13)
+        return apiClient.request(request)
+    }
 }
 
 private struct SearchBooksRequest: ApiRequest {
-    var baseURL: URL { URL(string: "https://api.itbook.store/1.0")! }
+    var baseURL: URL { URL(string: BASE_URL)! }
     var path: String { "/search/\(query)/\(page)" }
     var method: String { "GET" }
 
@@ -51,4 +55,12 @@ private struct LoadImageRequest: ApiRequest {
     var method: String { "GET" }
     
     var imageURL: String
+}
+
+private struct BookDetailRequest: ApiRequest {
+    var baseURL: URL { URL(string: BASE_URL)! }
+    var path: String { "/books/\(isbn13)" }
+    var method: String { "GET" }
+    
+    var isbn13: String
 }

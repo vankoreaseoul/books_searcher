@@ -18,10 +18,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window = UIWindow(windowScene: windowScene)
         window?.overrideUserInterfaceStyle = .light
         
-        let container = DIContainer()
-        let searchVC = SearchViewController(viewModel: container.makeSearchViewModel())
-        let naviVC = UINavigationController(rootViewController: searchVC)
-        window?.rootViewController = naviVC
+        let searchVC = SearchViewController(viewModel: DIContainer.shared.makeSearchViewModel())
+        let searchNaviVC = UINavigationController(rootViewController: searchVC)
+        window?.rootViewController = searchNaviVC
         window?.makeKeyAndVisible()
     }
 

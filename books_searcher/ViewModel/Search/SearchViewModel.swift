@@ -10,10 +10,6 @@ import Combine
 
 class SearchViewModel {
     
-    private var searchBooksUsecase: SearchBooksUsecase
-    var loadBookImageUsecase: LoadBookImageUsecase
-    
-    private var cancellables = Set<AnyCancellable>()
     private var query: String = ""
     
     var books: [Book] = []
@@ -23,9 +19,12 @@ class SearchViewModel {
     var presentAlert: ((String) -> Void)?
     var onUpdate: (() -> Void)?
     
-    init(searchBooksUsecase: SearchBooksUsecase, loadBookImageUsecase: LoadBookImageUsecase) {
+    private let searchBooksUsecase: SearchBooksUsecase
+    private var cancellables = Set<AnyCancellable>()
+    
+    init(searchBooksUsecase: SearchBooksUsecase) {
         self.searchBooksUsecase = searchBooksUsecase
-        self.loadBookImageUsecase = loadBookImageUsecase
+        print("SearchViewModel init..")
     }
     
     deinit {
@@ -66,6 +65,7 @@ class SearchViewModel {
                 case .finished:
                     break
                 case .failure(let error):
+                    // 실패할 경우
                     print("[Load Books Fail] Error = \(error), Msg: \(error.errorDescription)")
                     break
                 }

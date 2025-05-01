@@ -18,9 +18,7 @@ final class SearchBooksUsecaseImpl: SearchBooksUsecase {
     
     var booksRepo: BooksRepository
     
-    init(booksRepo: BooksRepository) {
-        self.booksRepo = booksRepo
-    }
+    init(booksRepo: BooksRepository) { self.booksRepo = booksRepo }
     
     func execute(query: String, page: Int) -> AnyPublisher<Pagination?, ApiError> {
         booksRepo.searchBooks(query: query, page: page)

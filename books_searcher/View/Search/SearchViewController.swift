@@ -21,12 +21,14 @@ class SearchViewController: UIViewController {
     init(viewModel: SearchViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
+        print("SearchViewController init..")
     }
     
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
     deinit {
         unsubscribeKeyboardPresence()
+        print("SearchViewController deinit..")
     }
     
     override func viewDidLoad() {
@@ -37,6 +39,7 @@ class SearchViewController: UIViewController {
     }
 
     private func configureUI() {
+        view.backgroundColor = .systemBackground
         title = "Book Search"
         
         searchTextField = UITextField()
@@ -139,7 +142,7 @@ class SearchViewController: UIViewController {
     }
     
     @objc private func keyboardWillShow(notification: NSNotification) {
-        guard let userInfo = notification.userInfo, let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else { return }
+        guard let userInfo = notification.userInfo, let keyboardFrame = userInfo[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect, keyboardHeight == .zero else { return }
         keyboardHeight = keyboardFrame.height
         
         UIView.animate(withDuration: 0.3) {
@@ -166,18 +169,14 @@ extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = searchTableView.dequeueReusableCell(withIdentifier: SearchTableViewCell.identifier, for: indexPath) as? SearchTableViewCell else { return UITableViewCell() }
-        cell.configure(book: viewModel.books[indexPath.row], usecase: viewModel.loadBookImageUsecase)
+        let selectedBook = viewModel.books[indexPath.row]
+        cell.bindViewModel(viewModel: DIContainer.shared.makeSearchTableCellViewModel(book: selectedBook))
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-//        let selectedBook = books[indexPath.row]
-        
-        let detailVC = DetailViewController()
-//        detailVC.book = selectedBook
+        let selectedBook = viewModel.books[indexPath.row]
+        let detailVC = DetailViewController(viewModel: DIContainer.shared.makeDetailViewModel(book: selectedBook))
         navigationController?.pushViewController(detailVC, animated: true)
     }
-    
-    
 }
-
