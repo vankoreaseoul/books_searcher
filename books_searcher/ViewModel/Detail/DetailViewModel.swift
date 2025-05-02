@@ -59,9 +59,6 @@ class DetailViewModel {
                 self?.loadImage(imageURL: detail.image)
                 
                 guard let pdfList = detail.pdf, !pdfList.isEmpty else { return }
-//                let pdfList = ["Chapter 2": "https://itbook.store/files/9781617294136/chapter2.pdf",
-//                               "Chapter 5": "https://itbook.store/files/9781617294136/chapter5.pdf"]
-                
                 self?.setupPDFView?(Array(pdfList.keys).sorted())
                 self?.loadPDFs(pdfs: pdfList)
             }

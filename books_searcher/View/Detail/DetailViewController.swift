@@ -29,6 +29,8 @@ class DetailViewController: UIViewController {
     
     private var pdfSectionView: PDFSectionView!
     
+    private var spinnerView: SpinnerView!
+    
     init(viewModel: DetailViewModel) {
         self.viewModel = viewModel
         super.init(nibName: nil, bundle: nil)
@@ -80,6 +82,23 @@ class DetailViewController: UIViewController {
             stackView.trailingAnchor.constraint(equalTo: scrollView.contentLayoutGuide.trailingAnchor, constant: -HORIZONTAL_PADDING),
             stackView.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -HORIZONTAL_PADDING*2)
         ])
+        
+        setupSpinnerView()
+    }
+    
+    private func setupSpinnerView() {
+        spinnerView = SpinnerView(frame: .zero)
+        spinnerView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(spinnerView)
+        
+        NSLayoutConstraint.activate([
+            spinnerView.topAnchor.constraint(equalTo: view.topAnchor),
+            spinnerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            spinnerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            spinnerView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+        
+        spinnerView.loading(indicatorStyle: .large)
     }
     
     private func setupContentVerticalStackView() -> UIStackView {
@@ -149,11 +168,17 @@ class DetailViewController: UIViewController {
     private func bindViewModel() {
         viewModel.successGetBookDetail = { [weak self] detail in
             self?.updateLabelTexts(detail: detail)
+            self?.spinnerView.successLoading()
         }
         
         viewModel.failGetBookDetail = { [weak self] msg in
+            self?.detailImageView.failLoadImage()
+            self?.spinnerView.successLoading()
+            
             let alert = UIAlertController(title: "Notice", message: msg, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "Ok", style: .default))
+            alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: { _ in
+                self?.navigationController?.popViewController(animated: true)
+            }))
             self?.present(alert, animated: false)
         }
         

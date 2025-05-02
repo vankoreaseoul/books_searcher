@@ -18,6 +18,8 @@ class SearchViewController: UIViewController {
     
     private let paginationView = PaginationView()
     
+    private var spinnerView: SpinnerView!
+    
     
     private var keyboardHeight: CGFloat = .zero
     private var tapGesture: UITapGestureRecognizer?
@@ -60,6 +62,21 @@ class SearchViewController: UIViewController {
             verticalStack.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             verticalStack.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             verticalStack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+        ])
+        
+        configureSpinnerView()
+    }
+    
+    private func configureSpinnerView() {
+        spinnerView = SpinnerView(frame: .zero)
+        spinnerView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(spinnerView)
+        
+        NSLayoutConstraint.activate([
+            spinnerView.topAnchor.constraint(equalTo: view.topAnchor),
+            spinnerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            spinnerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            spinnerView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
     
@@ -134,7 +151,7 @@ class SearchViewController: UIViewController {
             searchTextField.topAnchor.constraint(equalTo: container.topAnchor, constant: HORIZONTAL_PADDING),
             searchTextField.leftAnchor.constraint(equalTo: container.leftAnchor, constant: HORIZONTAL_PADDING),
             searchTextField.rightAnchor.constraint(equalTo: searchBtn.leftAnchor, constant: -HORIZONTAL_PADDING),
-            searchTextField.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -HORIZONTAL_PADDING*2),
+            searchTextField.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -HORIZONTAL_PADDING),
             searchTextField.heightAnchor.constraint(equalToConstant: SEARCH_TF_HEIGHT)
         ])
         
@@ -145,17 +162,36 @@ class SearchViewController: UIViewController {
     }
     
     private func bindViewModel() {
-        viewModel.presentAlert = { [weak self] msg in
-            let alert = UIAlertController(title: "Notice", message: msg, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "Ok", style: .default, handler: { _ in
-                self?.viewModel.resetComponents()
-            }))
-            self?.present(alert, animated: false)
+        viewModel.presentSpinner = { [weak self] in
+            self?.spinnerView.loading(indicatorStyle: .large)
         }
         
-        viewModel.onUpdate = { [weak self] in
+        viewModel.onUpdate = { [weak self] resultType in
             self?.setUpPaginationView()
             self?.searchTableView.reloadData()
+            self?.spinnerView.successLoading()
+            
+            guard resultType != .SUCCESS else { return }
+            
+            var msg: String = ""
+            
+            switch resultType {
+            case .HAS_SPACE:
+                msg = "Spaces are not allowed.\nPlease re-enter without spaces."
+                break
+            case .FAIL:
+                msg = "Can't load data.."
+                break
+            case .NO_DATA:
+                msg = "No data."
+                break
+            default:
+                break
+            }
+            
+            let alert = UIAlertController(title: "Notice", message: msg, preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "Ok", style: .default))
+            self?.present(alert, animated: false)
         }
     }
     

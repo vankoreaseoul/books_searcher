@@ -16,8 +16,8 @@ class SearchViewModel {
     var currentPage: Int = .zero
     var totalPages: Int = .zero
     
-    var presentAlert: ((String) -> Void)?
-    var onUpdate: (() -> Void)?
+    var presentSpinner: (() -> Void)?
+    var onUpdate: ((ResultType) -> Void)?
     
     private let searchBooksUsecase: SearchBooksUsecase
     private var cancellables = Set<AnyCancellable>()
@@ -33,7 +33,7 @@ class SearchViewModel {
     
     func didTapSearchBtn(query: String, page: Int) {
         guard !hasSpace(query) else {
-            presentAlert?("Spaces are not allowed.\nPlease re-enter without spaces.")
+            resetComponents(type: .HAS_SPACE)
             return
         }
         
@@ -51,21 +51,23 @@ class SearchViewModel {
         return hasLeadingOrTrailingSpace || hasMiddleSpace || trimmed.isEmpty
     }
     
-    func resetComponents() {
+    private func resetComponents(type: ResultType) {
         books = []
         currentPage = .zero
         totalPages = .zero
-        onUpdate?()
+        onUpdate?(type)
     }
     
     func didTapPageBtn(page: Int) {
+        presentSpinner?()
+        
         searchBooksUsecase.execute(query: query, page: page)
-            .sink { completion in
+            .sink { [weak self] completion in
                 switch completion {
                 case .finished:
                     break
                 case .failure(let error):
-                    // 실패할 경우
+                    self?.resetComponents(type: .FAIL)
                     print("[Load Books Fail] Error = \(error), Msg: \(error.errorDescription)")
                     break
                 }
@@ -74,14 +76,20 @@ class SearchViewModel {
                     self?.books = hasPagination.currentBooks
                     self?.currentPage = hasPagination.currentPage
                     self?.totalPages = hasPagination.totalPages
-                    self?.onUpdate?()
+                    self?.onUpdate?(.SUCCESS)
                     
                 } else {
-                    // 자료가 없는 경우
-                    self?.resetComponents()
+                    self?.resetComponents(type: .NO_DATA)
                 }
             }
             .store(in: &cancellables)
     }
     
+}
+
+enum ResultType {
+    case HAS_SPACE
+    case FAIL
+    case NO_DATA
+    case SUCCESS
 }

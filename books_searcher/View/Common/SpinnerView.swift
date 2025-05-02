@@ -29,6 +29,7 @@ class SpinnerView: UIView {
         
         errorLbl = UILabel()
         errorLbl.adjustsFontSizeToFitWidth = true
+        errorLbl.textAlignment = .center
         errorLbl.textColor = .white
         errorLbl.translatesAutoresizingMaskIntoConstraints = false
 
@@ -44,11 +45,14 @@ class SpinnerView: UIView {
             indicator.centerXAnchor.constraint(equalTo: self.centerXAnchor),
             indicator.centerYAnchor.constraint(equalTo: self.centerYAnchor)
         ])
+        
+        self.isHidden = true
     }
     
-    func loading() {
+    func loading(indicatorStyle: UIActivityIndicatorView.Style = .medium) {
         self.isHidden = false
         indicator.isHidden = false
+        indicator.style = indicatorStyle
         errorLbl.isHidden = true
     }
     
