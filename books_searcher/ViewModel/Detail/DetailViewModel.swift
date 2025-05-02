@@ -8,6 +8,7 @@
 import Foundation
 import UIKit
 import Combine
+import PDFKit
 
 class DetailViewModel {
     
@@ -18,6 +19,10 @@ class DetailViewModel {
     
     var successGetBookImage: ((UIImage) -> Void)?
     var failGetBookImage: (() -> Void)?
+    
+    var setupPDFView: (([String]) -> Void)?
+    var successLoadPDF: ((String, PDFDocument) -> Void)?
+    var failLoadPDF: ((String) -> Void)?
     
     private let getBookDetailUsecase: GetBookDetailUsecase
     private let loadBookImageUsecase: LoadBookImageUsecase
@@ -53,11 +58,11 @@ class DetailViewModel {
                 self?.successGetBookDetail?(detail)
                 self?.loadImage(imageURL: detail.image)
                 
-//                guard let pdfList = detail.pdf, !pdfList.isEmpty else { return }
-                let pdfList = ["Chapter 2": "https://itbook.store/files/9781617294136/chapter2.pdf",
-                               "Chapter 5": "https://itbook.store/files/9781617294136/chapter5.pdf"]
+                guard let pdfList = detail.pdf, !pdfList.isEmpty else { return }
+//                let pdfList = ["Chapter 2": "https://itbook.store/files/9781617294136/chapter2.pdf",
+//                               "Chapter 5": "https://itbook.store/files/9781617294136/chapter5.pdf"]
                 
-                
+                self?.setupPDFView?(Array(pdfList.keys).sorted())
                 self?.loadPDFs(pdfs: pdfList)
             }
             .store(in: &cancellables)
@@ -93,12 +98,12 @@ class DetailViewModel {
                     case.finished:
                         break
                     case .failure(let error):
-                        
+                        self?.failLoadPDF?(key)
                         print("[Load PDF Fail] Error: \(error), Msg: \(error.errorDescription)")
                         break
                     }
                 } receiveValue: { [weak self] pdfDocument in
-                    print("result = \(pdfDocument)")
+                    self?.successLoadPDF?(key, pdfDocument)
                 }
                 .store(in: &cancellables)
         }

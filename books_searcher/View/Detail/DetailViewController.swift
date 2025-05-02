@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import PDFKit
 
 class DetailViewController: UIViewController {
     
@@ -26,7 +27,7 @@ class DetailViewController: UIViewController {
     private var priceLbl: UILabel!
     private var urlLbl: UILabel!
     
-    private var pdfVerticalStackView: UIStackView!
+    private var pdfSectionView: PDFSectionView!
     
     init(viewModel: DetailViewModel) {
         self.viewModel = viewModel
@@ -59,7 +60,6 @@ class DetailViewController: UIViewController {
         
         scrollView.addSubview(detailImageView)
         scrollView.addSubview(stackView)
-        scrollView.addSubview(pdfVerticalStackView)
         
         view.addSubview(scrollView)
         
@@ -85,8 +85,9 @@ class DetailViewController: UIViewController {
     private func setupContentVerticalStackView() -> UIStackView {
         let types: [DetailResultTextType] = [.TITLE, .SUBTITLE, .AUTHORS, .PUBLISHER, .ISBN10, .ISBN13, .PAGES, .YEAR, .RATING, .DESC, .PRICE, .URL]
         var labelViews = types.map { setupLabelView(type: $0) }
-        pdfVerticalStackView = setupPDFVerticalStackView()
-        labelViews.append(pdfVerticalStackView)
+        
+        pdfSectionView = PDFSectionView(frame: .zero)
+        labelViews.append(pdfSectionView)
         
         let verticalStack = UIStackView(arrangedSubviews: labelViews)
         
@@ -112,6 +113,7 @@ class DetailViewController: UIViewController {
         let verticalStack = UIStackView(arrangedSubviews: [label, text])
         verticalStack.axis = .vertical
         verticalStack.spacing = DETAIL_VIEW_VERTICAL_PADDING_BETWEEN_LABEL_TEXT
+        verticalStack.distribution = .equalSpacing
         verticalStack.translatesAutoresizingMaskIntoConstraints = false
         
         switch type {
@@ -144,16 +146,6 @@ class DetailViewController: UIViewController {
         return verticalStack
     }
     
-    private func setupPDFVerticalStackView() -> UIStackView {
-        let verticalStack = UIStackView()
-        verticalStack.axis = .vertical
-        verticalStack.spacing = DETAIL_VIEW_VERTICAL_PADDING_BETWEEN_LABELS
-        verticalStack.distribution = .equalSpacing
-        verticalStack.translatesAutoresizingMaskIntoConstraints = false
-        
-        return verticalStack
-    }
-    
     private func bindViewModel() {
         viewModel.successGetBookDetail = { [weak self] detail in
             self?.updateLabelTexts(detail: detail)
@@ -171,6 +163,18 @@ class DetailViewController: UIViewController {
         
         viewModel.failGetBookImage = { [weak self] in
             self?.detailImageView.failLoadImage()
+        }
+        
+        viewModel.setupPDFView = { [weak self] keys in
+            self?.pdfSectionView.setup(keys)
+        }
+        
+        viewModel.successLoadPDF = { [weak self] (key: String, document: PDFDocument) in
+            self?.pdfSectionView.configurePDF(key: key, pdfDocument: document)
+        }
+        
+        viewModel.failLoadPDF = { [weak self] key in
+            self?.pdfSectionView.failLoadingPDF(key)
         }
         
         viewModel.getBookDetail()
@@ -204,7 +208,7 @@ private enum DetailResultTextType: String {
     case PAGES = "Pages"
     case YEAR = "Year"
     case RATING = "Rating"
-    case DESC = "desc"
+    case DESC = "Desc"
     case PRICE = "Price"
     case URL = "Url"
 }

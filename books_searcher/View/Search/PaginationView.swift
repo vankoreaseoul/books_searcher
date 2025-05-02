@@ -98,7 +98,7 @@ class PaginationView: UIView {
         let label = UILabel()
         label.text = "..."
         label.textColor = .gray
-        label.font = .systemFont(ofSize: 14)
+        label.font = .systemFont(ofSize: TABLE_CELL_FONT_SIZE)
         return label
     }
     

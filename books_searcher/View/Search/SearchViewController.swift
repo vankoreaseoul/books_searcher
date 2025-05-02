@@ -13,10 +13,14 @@ class SearchViewController: UIViewController {
     
     private var searchTextField: UITextField!
     private var searchBtn: UIButton!
+    
     private var searchTableView: UITableView!
-    private var keyboardHeight: CGFloat = .zero
     
     private let paginationView = PaginationView()
+    
+    
+    private var keyboardHeight: CGFloat = .zero
+    private var tapGesture: UITapGestureRecognizer?
     
     init(viewModel: SearchViewModel) {
         self.viewModel = viewModel
@@ -42,6 +46,66 @@ class SearchViewController: UIViewController {
         view.backgroundColor = .systemBackground
         title = "Book Search"
         
+        let searchViewContainer = configureSearchBarView()
+        let tableViewContainer = configureTableView()
+        let pageViewContainer = configurePageView()
+        
+        let verticalStack = UIStackView(arrangedSubviews: [searchViewContainer, tableViewContainer, pageViewContainer])
+        verticalStack.axis = .vertical
+        verticalStack.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(verticalStack)
+        
+        NSLayoutConstraint.activate([
+            verticalStack.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            verticalStack.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            verticalStack.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            verticalStack.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+        ])
+    }
+    
+    private func configurePageView() -> UIView {
+        let container = UIView()
+        paginationView.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(paginationView)
+        
+        NSLayoutConstraint.activate([
+            paginationView.topAnchor.constraint(equalTo: container.topAnchor),
+            paginationView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            paginationView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            paginationView.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+            paginationView.heightAnchor.constraint(equalToConstant: 44)
+        ])
+        
+        return container
+    }
+    
+    private func configureTableView() -> UIView {
+        let container = UIView()
+        tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
+        
+        searchTableView = UITableView(frame: .zero, style: .plain)
+        searchTableView.register(SearchTableViewCell.self, forCellReuseIdentifier: SearchTableViewCell.identifier)
+        searchTableView.delegate = self
+        searchTableView.dataSource = self
+        searchTableView.rowHeight = TABLE_CELL_HEIGHT
+        
+        searchTableView.translatesAutoresizingMaskIntoConstraints = false
+        
+        container.addSubview(searchTableView)
+        
+        NSLayoutConstraint.activate([
+            searchTableView.topAnchor.constraint(equalTo: container.topAnchor),
+            searchTableView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            searchTableView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            searchTableView.bottomAnchor.constraint(equalTo: container.bottomAnchor)
+        ])
+        
+        return container
+    }
+    
+    private func configureSearchBarView() -> UIView {
+        let container = UIView()
+        
         searchTextField = UITextField()
         searchTextField.placeholder = "Enter search term"
         searchTextField.borderStyle = .roundedRect
@@ -59,46 +123,25 @@ class SearchViewController: UIViewController {
         searchBtn.addTarget(self, action: #selector(searchBtnTapped), for: .touchUpInside)
         searchBtn.translatesAutoresizingMaskIntoConstraints = false
         
-        searchTableView = UITableView(frame: .zero, style: .plain)
-        searchTableView.register(SearchTableViewCell.self, forCellReuseIdentifier: SearchTableViewCell.identifier)
-        searchTableView.delegate = self
-        searchTableView.dataSource = self
-        searchTableView.rowHeight = TABLE_CELL_HEIGHT
-        
-        searchTableView.translatesAutoresizingMaskIntoConstraints = false
-        
-        paginationView.translatesAutoresizingMaskIntoConstraints = false
-        
-        view.addSubview(searchTextField)
-        view.addSubview(searchBtn)
-        view.addSubview(searchTableView)
-        view.addSubview(paginationView)
-        
-        view.backgroundColor = .systemBackground
+        container.addSubview(searchTextField)
+        container.addSubview(searchBtn)
         
         NSLayoutConstraint.activate([
-            searchBtn.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
-            searchBtn.rightAnchor.constraint(equalTo: view.rightAnchor, constant: -16),
-            searchBtn.widthAnchor.constraint(equalToConstant: 100),
+            searchBtn.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            searchBtn.rightAnchor.constraint(equalTo: container.rightAnchor, constant: -HORIZONTAL_PADDING),
+            searchBtn.widthAnchor.constraint(equalToConstant: SEARCH_BTN_WIDTH),
             
-            searchTextField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 16),
-            searchTextField.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 16),
-            searchTextField.rightAnchor.constraint(equalTo: searchBtn.leftAnchor, constant: -16),
-            searchTextField.heightAnchor.constraint(equalToConstant: 40),
-
-            searchTableView.topAnchor.constraint(equalTo: searchBtn.bottomAnchor, constant: 28),
-            searchTableView.leftAnchor.constraint(equalTo: view.leftAnchor),
-            searchTableView.rightAnchor.constraint(equalTo: view.rightAnchor),
-            searchTableView.bottomAnchor.constraint(equalTo: paginationView.topAnchor, constant: -16),
-            
-            paginationView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -4),
-            paginationView.leftAnchor.constraint(equalTo: view.leftAnchor),
-            paginationView.rightAnchor.constraint(equalTo: view.rightAnchor),
-            paginationView.heightAnchor.constraint(equalToConstant: 44)
+            searchTextField.topAnchor.constraint(equalTo: container.topAnchor, constant: HORIZONTAL_PADDING),
+            searchTextField.leftAnchor.constraint(equalTo: container.leftAnchor, constant: HORIZONTAL_PADDING),
+            searchTextField.rightAnchor.constraint(equalTo: searchBtn.leftAnchor, constant: -HORIZONTAL_PADDING),
+            searchTextField.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -HORIZONTAL_PADDING*2),
+            searchTextField.heightAnchor.constraint(equalToConstant: SEARCH_TF_HEIGHT)
         ])
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(dismissKeyboard))
-//        view.addGestureRecognizer(tapGesture)
+        container.addGestureRecognizer(tapGesture)
+        
+        return container
     }
     
     private func bindViewModel() {
@@ -164,6 +207,12 @@ class SearchViewController: UIViewController {
 
 extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if viewModel.books.isEmpty {
+            if let hasTapGestureRecognizer = tapGesture { tableView.addGestureRecognizer(hasTapGestureRecognizer) }
+        } else {
+            if let hasTapGestureRecognizer = tapGesture { tableView.removeGestureRecognizer(hasTapGestureRecognizer) }
+        }
+        
         return viewModel.books.count
     }
     
@@ -175,6 +224,9 @@ extension SearchViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        dismissKeyboard()
+        searchTableView.deselectRow(at: indexPath, animated: true)
+        
         let selectedBook = viewModel.books[indexPath.row]
         let detailVC = DetailViewController(viewModel: DIContainer.shared.makeDetailViewModel(book: selectedBook))
         navigationController?.pushViewController(detailVC, animated: true)
