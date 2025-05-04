@@ -66,6 +66,15 @@ books_searcher
       └── LaunchScreen
 ```
 
+## Caching Strategy
+To provide a smooth and efficient user experience, this project includes a custom caching system for images and PDF files:
+
+- All caching is implemented using built-in Apple frameworks — no third-party libraries are used.
+- Once an image or PDF is downloaded, it’s stored in both memory and disk to avoid downloading it again.
+- The disk cache has a maximum size limit. When the limit is exceeded, older files are automatically removed first (using a "least recently used" policy).
+- To ensure up-to-date content, each cached file has an expiration time. If the file is too old, it will be downloaded again from the server.
+- This system helps reduce unnecessary network traffic while still keeping content fresh when it changes on the server.
+
 ## Getting Started
 ### Requirements 
 This project uses the following frameworks, each of which has a minimum required version for iOS and Xcode:
