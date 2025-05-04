@@ -18,45 +18,50 @@ Book Searcher is an iOS app using a public API called 'itbook' to display inform
 ## Architecture
 ```
 books_searcher
-├── Data
-│     ├── Cache
-│     │     ├── CacheManager
-│     │     ├── ImageCacheManager
-│     │     └── PDFCacheManager
-│     ├── Model
-│     │     ├── Entity
-│     │     └── ResponseDTO
-│     └── Network
-|            ├── ApiClient
-│            └── BooksRepository
-├── Service
-│     ├── ApplyBlackAndWhiteOnPhotoService
-│     ├── GetImageService
-│     ├── GetPhotoListService
-│     ├── SaveImageService
-│     └── SearchPhotoListService
-├── Usecase
-│     ├── StartAppUsecase
-│     ├── TurnOnOffBlackAndWhiteToggleUsecase
-│     └── WriteTextOnSearchBarUsecase
-├── Utils
-│     ├── ApiManager
-│     ├── Constant
-│     └── Extension
-├── View
-│     ├── AlertView
-│     ├── PhotoDetailView
-│     ├── PhotoListCellView
-│     ├── PhotoListView
-│     ├── SearchBarView
-│     ├── SpinnerView
-│     └── ZoomAndRotateView
-├── ViewModel
-│     ├── PhotoDetailVM
-│     ├── PhotoListCellVM
-│     └── PhotoListVM
-├── DependencyInjectionContainer
-├── galleryApp
-├── Assets
-└── LaunchScreen
+      ├── Data
+      │     ├── Cache
+      │     │     ├── CacheManager
+      │     │     ├── ImageCacheManager
+      │     │     └── PDFCacheManager
+      │     ├── Model
+      │     │     ├── Entity
+      │     │     └── ResponseDTO
+      │     └── Network
+      |            ├── ApiClient
+      │            └── BooksRepository
+      ├── Delegate
+      │      ├── AppDelegate
+      │      └── SceneDelegate
+      ├── Usecase
+      │      ├── GetBookDetailUsecase
+      │      ├── LoadBookImageUsecase
+      │      ├── LoadBookPDFUsecase
+      │      └── SearchBooksUsecase
+      ├── Utils
+      │     ├── Constant
+      │     ├── DIContainer
+      │     └── Extension
+      ├── View
+      │     ├── Common
+      │     │     ├── BookImageView
+      │     │     └── SpinnerView
+      │     ├── Detail
+      │     │     ├── PDF
+      │     │     │    ├── PDFSectionView
+      │     │     │    └── PDFWrapperView       
+      │     │     └── DetailViewController
+      │     └── Search
+      │            ├── PaginationView
+      |            ├── SearchTableViewCell
+      │            └── SearchViewController
+      ├── ViewModel
+      │       ├── Detail
+      │       │     └── DetailViewModel
+      │       └── Search
+      |             ├── SearchTableCellViewModel
+      │             └── SearchViewModel  
+      ├── ApiError
+      ├── Assets
+      ├── Info
+      └── LaunchScreen
 ```
