@@ -65,3 +65,27 @@ books_searcher
       ├── Info
       └── LaunchScreen
 ```
+
+## Getting Started
+### Requirements 
+This project uses the following frameworks, each of which has a minimum required version for iOS and Xcode:
+
+| Framework   | Minimum iOS Version | Minimum Xcode Version | Notes |
+|-------------|---------------------|------------------------|-------|
+| **UIKit**   | iOS 2.0             | -                      | Core UI framework for all iOS apps |
+| **Combine** | iOS 13.0            | Xcode 11               | Declarative framework for async and event-driven code |
+| **PDFKit**  | iOS 11.0            | Xcode 9                | Provides PDF viewing and rendering capabilities |
+
+> 📌 **Deployment Target** must be set to at least `iOS 13.0`.
+
+
+<br>To run this project locally, follow these steps:
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/vankoreaseoul/books_searcher.git
+
+2. **Open the project in Xcode**
+<br>Open books_searcher.xcodeproj or books_searcher.xcworkspace in Xcode.
+
+3. **Build and run the app**
+<br>Select a simulator or your device, then press Cmd + R to build and launch the app.
